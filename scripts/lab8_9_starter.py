@@ -237,6 +237,15 @@ class ParticleFilter:
 
         # Propagate motion of each particle
         ######### Your code starts here #########
+        for particle in self.particles: 
+                #add noise to simulate motion uncertainty
+                noise_dx = delta_x + random.gauss(0, self.motion_noise)
+                noise_dy = delta_y + random.gauss(0, self.motion_noise)
+                noise_dtheta = delta_theta + random.gauss(0, self.motion_noise)
+
+                particle.x += noise_dx
+                particle.y += noise_dy
+                particle.theta = angle_to_neg_pi_to_pi(particle.theta + noise_>
 
         ######### Your code ends here #########
 
