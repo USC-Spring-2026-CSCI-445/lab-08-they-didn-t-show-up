@@ -237,7 +237,10 @@ class ParticleFilter:
 
         # Propagate motion of each particle
         ######### Your code starts here #########
-
+        for i in range(self.n_particles):
+            self._particles[i].x += np.random.normal(delta_x, self.t_variance) 
+            self._particles[i].y += np.random.normal(delta_y, self.t_variance) 
+            self._particles[i].theta += np.random.normal(delta_theta, self.r_variance) 
         ######### Your code ends here #########
 
     def measure(self, z: float, scan_angle_in_rad: float):
