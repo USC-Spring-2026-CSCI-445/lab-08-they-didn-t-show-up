@@ -160,7 +160,43 @@ class Map:
 
 # PID controller class
 ######### Your code starts here #########
+class PIDController:
+    """
+    Generates control action taking into account instantaneous error (proportional action),
+    accumulated error (integral action) and rate of change of error (derivative action).
+    """
 
+    def __init__(self, kP, kI, kD, kS, u_min, u_max):
+        assert u_min < u_max, "u_min should be less than u_max"
+        # Initialize PID variables here
+        ######### Your code starts here #########
+        self.kP = kP
+        self.kD = kD
+        self.kS = kS
+        self.kI = kI
+        self.u_min = u_min
+        self.u_max = u_max
+        self.t_prev = 0
+        self.err_prev = 0
+        self.integral = 0
+        ######### Your code ends here #########
+
+    def control(self, err, t):
+        # computer PID control action here
+        ######### Your code starts here #########
+        if self.t_prev == 0:
+            self.t_prev = t
+            self.err_prev = err
+        dt = t - self.t_prev
+        self.integral += err * dt
+        if dt <= 1e-6:
+            return 0
+        u = self.kP * err + self.kD * (err - self.err_prev) / dt + self.kS + self.kI * self.integral
+        u = max(u, self.u_min)
+        u = min(u, self.u_max)
+        self.t_prev = t
+        self.err_prev = err
+        return u
 ######### Your code ends here #########
 
 
@@ -237,23 +273,10 @@ class ParticleFilter:
 
         # Propagate motion of each particle
         ######### Your code starts here #########
-<<<<<<< HEAD
         for i in range(self.n_particles):
             self._particles[i].x += np.random.normal(delta_x, self.t_variance) 
             self._particles[i].y += np.random.normal(delta_y, self.t_variance) 
             self._particles[i].theta += np.random.normal(delta_theta, self.r_variance) 
-=======
-        for particle in self.particles: 
-                #add noise to simulate motion uncertainty
-                noise_dx = delta_x + random.gauss(0, self.motion_noise)
-                noise_dy = delta_y + random.gauss(0, self.motion_noise)
-                noise_dtheta = delta_theta + random.gauss(0, self.motion_noise)
-
-                particle.x += noise_dx
-                particle.y += noise_dy
-                particle.theta = angle_to_neg_pi_to_pi(particle.theta + noise_>
-
->>>>>>> ca6b3c82999a8801c4289a9ab7f36f145461ae43
         ######### Your code ends here #########
 
     def measure(self, z: float, scan_angle_in_rad: float):
@@ -281,7 +304,7 @@ class Controller:
         rospy.init_node("particle_filter_controller", anonymous=True)
         self._particle_filter = particle_filter
         self._particle_filter.visualize_particles()
-
+        self.PconRota = PIDController(1,.1,1,0, -2.84, 2.84)
         #
         self.current_position = None
         self.laserscan = None
@@ -365,7 +388,17 @@ class Controller:
     def forward_action(self, distance: float):
         # Robot moves forward by a set amount during manual control
         ######### Your code starts here #########
-
+        goalx = self.current_position.x + distance * np.cos(self.current_position.theta)
+        goaly = self.current_position.y + distance * np.sin(self.current_position.theta)
+        
+        
+        while abs(goalx**2 + goaly**2 - (self.current_position.x**2 + self.current_position.y**2)) < .05:
+            cmd = Twist()
+            cmd.linear.x = .1
+            self.robot_ctrl_pub.publish(cmd)
+        cmd = Twist()
+        cmd.linear.x = 0
+        self.robot_ctrl_pub.publish(cmd)
         ######### Your code ends here #########
 
     def rotate_action(self, goal_theta: float):
