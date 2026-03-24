@@ -237,24 +237,11 @@ class ParticleFilter:
 
         # Propagate motion of each particle
         ######### Your code starts here #########
-<<<<<<< HEAD
         for i in range(self.n_particles):
-            self._particles[i].x += np.random.normal(delta_x, self.t_variance) 
-            self._particles[i].y += np.random.normal(delta_y, self.t_variance) 
-            self._particles[i].theta += np.random.normal(delta_theta, self.r_variance) 
-=======
-        for particle in self.particles: 
-                #add noise to simulate motion uncertainty
-                noise_dx = delta_x + random.gauss(0, self.motion_noise)
-                noise_dy = delta_y + random.gauss(0, self.motion_noise)
-                noise_dtheta = delta_theta + random.gauss(0, self.motion_noise)
-
-                particle.x += noise_dx
-                particle.y += noise_dy
-                particle.theta = angle_to_neg_pi_to_pi(particle.theta + noise_>
-
->>>>>>> ca6b3c82999a8801c4289a9ab7f36f145461ae43
-        ######### Your code ends here #########
+            self._particles[i].x += np.random.normal(delta_x, self.t_variance)
+            self._particles[i].y += np.random.normal(delta_y, self.t_variance)
+            self._particles[i].theta += np.random.normal(delta_theta, self.r_v>
+        ######## Your code ends here  #########
 
     def measure(self, z: float, scan_angle_in_rad: float):
         """Update the particles based on the measurement `z` at the given `scan_angle_in_rad`.
