@@ -253,13 +253,49 @@ class ParticleFilter:
 
         # Calculate posterior probabilities and resample
         ######### Your code starts here #########
-
+        ####step 1####
+        for particle in self._particles:
+            # Get expected sensor reading from this particle's pose
+            origin = (particle.x, particle.y)
+            heading = particle.theta + scan_angle_in_rad
+            expected_z = self.map.closest_distance(origin, heading)
+            
+            # Evaluate Gaussian PDF at actual reading z, given expected reading
+            # σs = sqrt(m_variance) since variance = σ²
+            likelihood = norm(loc=expected_z, scale=np.sqrt(self.m_variance)).pdf(z)
+            
+            # Add log-likelihood to existing log-weight
+            particle.weight += np.log(likelihood + 1e-300)  # 1e-300 prevents log(0)
+    
+        # Step 2: Normalize log-weights (logsumexp for numerical stability)
+        log_weights = np.array([p.weight for p in self._particles])
+        log_sum = logsumexp(log_weights)
+        for p in self._particles:
+            p.weight -= log_sum
+    
+        # Step 3: Resample using choices() as hinted
+        linear_weights = [np.exp(p.weight) for p in self._particles]
+        self._particles = [
+            Particle(p.x, p.y, p.theta, np.log(1 / self.n_particles))
+            for p in choices(self._particles, weights=linear_weights, k=self.n_particles)
+        ]    
         ######### Your code ends here #########
 
     def get_estimate(self) -> Tuple[float, float, float]:
         # Estimate robot's location using particle weights
         ######### Your code starts here #########
-
+        # Convert log-weights back to linear for weighted average
+        linear_weights = np.array([np.exp(p.weight) for p in self._particles])
+        
+        x = sum(p.x * w for p, w in zip(self._particles, linear_weights))
+        y = sum(p.y * w for p, w in zip(self._particles, linear_weights))
+        
+        # Circular mean for theta to handle angle wraparound
+        sin_sum = sum(np.sin(p.theta) * w for p, w in zip(self._particles, linear_weights))
+        cos_sum = sum(np.cos(p.theta) * w for p, w in zip(self._particles, linear_weights))
+        theta = np.arctan2(sin_sum, cos_sum)
+        
+        return x, y, theta
         ######### Your code ends here #########
 
 
