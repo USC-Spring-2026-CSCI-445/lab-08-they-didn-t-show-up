@@ -190,7 +190,22 @@ class ParticleFilter:
 
         # Initialize uniformly-distributed particles
         ######### Your code starts here #########
-
+        self.map = map_
+        self.n_particles = n_particles
+        self.t_variance = translation_variance
+        self.r_variance = rotation_variance
+        self.m_variance = measurement_variance
+        
+        self._particles = []
+        
+        
+        for i in range(n_particles):
+            xmin, xmax, ymin, ymax = map_["map_aabb"] 
+            self._particles.append(Particle(uniform(xmin, xmax), uniform(ymin, ymax), uniform(-np.pi, np,pi), np.log(1/n_particles)))
+        
+            #self._particles.append(Particle(uniform(-0.6040023285176362, 3.534200072826875), uniform(-0.5762519560086875,3.447370477429721), uniform(-np.pi, np,pi), np.log(1/n_particles)))
+        
+        
         ######### Your code ends here #########
 
     def visualize_particles(self):
