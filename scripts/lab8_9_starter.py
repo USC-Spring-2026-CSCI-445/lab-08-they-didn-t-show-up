@@ -274,17 +274,10 @@ class ParticleFilter:
         # Propagate motion of each particle
         ######### Your code starts here #########
         for i in range(self.n_particles):
-<<<<<<< HEAD
             self._particles[i].x += np.random.normal(delta_x, self.t_variance) 
             self._particles[i].y += np.random.normal(delta_y, self.t_variance) 
             self._particles[i].theta += np.random.normal(delta_theta, self.r_variance) 
         ######### Your code ends here #########
-=======
-            self._particles[i].x += np.random.normal(delta_x, self.t_variance)
-            self._particles[i].y += np.random.normal(delta_y, self.t_variance)
-            self._particles[i].theta += np.random.normal(delta_theta, self.r_v>
-        ######## Your code ends here  #########
->>>>>>> 914cda4628524a2158d9b9a20b6023786effe23c
 
     def measure(self, z: float, scan_angle_in_rad: float):
         """Update the particles based on the measurement `z` at the given `scan_angle_in_rad`.
@@ -412,7 +405,24 @@ class Controller:
         ######### Your code starts here #########
         # NOTE: with more than 2 angles the particle filter will converge too quickly, so with high likelihood the
         # correct neighborhood won't be found.
-
+        measurements = []
+    
+        scan = self.laserscan  
+        angles = [0.0, np.pi / 4] 
+    
+        for angle in angles:
+            index = int((angle - scan.angle_min) / scan.angle_increment)
+        
+            index = max(0, min(index, len(scan.ranges) - 1))
+        
+            distance = scan.ranges[index]
+        
+            if np.isnan(distance) or np.isinf(distance):
+                distance = float("inf")
+        
+            measurements.append(distance)
+    
+        return measurements
         ######### Your code ends here #########
 
     def autonomous_exploration(self):
