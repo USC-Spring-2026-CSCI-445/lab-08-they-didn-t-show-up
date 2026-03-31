@@ -341,6 +341,8 @@ class Controller:
         self._particle_filter = particle_filter
         self._particle_filter.visualize_particles()
         self.PconRota = PIDController(1,.1,1,0, -2.84, 2.84)
+        self.autofound = 0
+        self.starttime = rospy.Time.now()
         #
         self.current_position = None
         self.laserscan = None
@@ -433,9 +435,36 @@ class Controller:
             visualize_position(...)
             visualize_laserscan_ranges(...)
         """
-        # Robot autonomously explores environment while it localizes itself
-        ######### Your code starts here #########
+        measurements = self.take_measurements()
+        nowtime = rospy.Time.now() - self.starttime
+        forward_dist = measurements[0]
+        print("Current Time: ", nowtime)
+        particles = self._particle_filter.particles
+        positions = np.array([[p.x, p.y] for p in particles])
+        spread = np.var(positions, axis=0).sum()
 
+        thetas = np.array([p.theta for p in particles])
+        sin_mean = np.mean(np.sin(thetas))
+        cos_mean = np.mean(np.cos(thetas))
+        R = np.sqrt(sin_mean**2 + cos_mean**2)
+
+        if spread < 0.01 and R > 0.9:
+            self.autofound = 1
+            print("Converged! Stopping exploration.")
+            return
+    
+        if forward_dist < 0.5:   
+            self._particle_filter.move_by(0, np.pi/4)
+            self.rotate_action() #depends on how rotate action is implimented
+        else:
+            self._particle_filter.move_by(.2, 0)
+            self.forward_action(.2)
+    
+        self._particle_filter.update(measurements)
+    
+        self.visualize_laserscan_ranges(measurements)
+        self.visualize_position(self._particle_filter.get_estimate())
+    
         ######### Your code ends here #########
 
     def forward_action(self, distance: float):
@@ -517,7 +546,8 @@ if __name__ == "__main__":
 
         # Autonomous exploration
         ######### Your code starts here #########
-        controller.autonomous_exploration()
+        if controller.autofound == 0:
+            controller.autonomous_exploration()
         ######### Your code ends here #########
 
     except rospy.ROSInterruptException:
