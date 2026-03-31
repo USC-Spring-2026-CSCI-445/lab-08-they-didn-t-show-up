@@ -486,13 +486,14 @@ class Controller:
     def rotate_action(self, goal_theta: float):
         # Robot turns by a set amount during manual control
         ######### Your code starts here #########
-
-
+        for particle in self._particles:
+            # Sample noisy rotation from Gaussian centered on commanded rotation
+            # σΘ corresponds to r_variance (rotation variance)
+            noisy_theta = goal_theta + np.random.normal(0, np.sqrt(self.r_variance))
+            particle.theta = angle_to_neg_pi_to_pi(particle.theta + noisy_theta)
         ######### Your code ends here #########
 
-
 """ Example usage
-
 rosrun development lab8_9.py --map_filepath src/csci455l/scripts/lab8_9_map.json
 """
 
